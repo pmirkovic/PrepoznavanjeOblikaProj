@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 import seaborn as sb
 from scipy.stats import skew, kurtosis
 import statsmodels.api as sm
+from sklearn import metrics
+from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, confusion_matrix, \
@@ -13,6 +15,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, a
 from scipy.stats import mode
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
+from sklearn.tree import DecisionTreeRegressor
 
 #3
 # učitavanje u dataframe format
@@ -184,8 +187,15 @@ def model_evaluation(y_test, y_predicted, N, d):
 x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.1, train_size=0.8, random_state=42)
 x_train1, x_val, y_train1, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=42)
 
-kf = KFold(n_splits=10,shuffle=True,random_state=42)
+#Provera najboljeg k
+for k in range(1, 10):
+    knn_regressor = KNeighborsRegressor(n_neighbors=k)
+    knn_regressor.fit(x_train, y_train)
+    print(f'Score for k={k}: {knn_regressor.score(x_test, y_test)}')
+
+kf = KFold(n_splits=5,shuffle=True,random_state=42)
 indexes = kf.split(X,y)
+
 for train_index, test_index in indexes:
     x_train = X.iloc[train_index,:]
     x_test = X.iloc[test_index,:]
@@ -196,6 +206,7 @@ for train_index, test_index in indexes:
     scaler.fit(x_train)
     x_train = scaler.transform(x_train)
     x_test = scaler.transform(x_test)
+
     print("\nLinearna regresiaj")
     linear_model = LinearRegression()
     #obuka
@@ -226,6 +237,18 @@ for train_index, test_index in indexes:
     model_evaluation(y_test, y_lasso_pred, x_train.shape[0], x_train.shape[1])
     print("koeficijenti: ", lasso_model.coef_)
 
+    print("\nKnn regresiaj")
+    knn_regressor = KNeighborsRegressor(n_neighbors=2)
+    knn_regressor.fit(x_train, y_train)
+    y_knn_pred = knn_regressor.predict(x_test)
 
+    model_evaluation(y_test, y_knn_pred, x_train.shape[0], x_train.shape[1])
+    print("koeficijenti: ", knn_regressor.score(x_test,y_test))
 
+    print("\nStabla odluke")
+    decision_tree = DecisionTreeRegressor()
+    decision_tree.fit(x_train, y_train)
+    y_desctree_pred = decision_tree.predict(x_test)
+    model_evaluation(y_test, y_desctree_pred, x_train.shape[0], x_train.shape[1])
+    print("koeficijenti: ", decision_tree.score(x_test,y_test))
 
