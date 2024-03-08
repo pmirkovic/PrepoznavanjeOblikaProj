@@ -188,10 +188,10 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.1, train_s
 x_train1, x_val, y_train1, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=42)
 
 #Provera najboljeg k
-for k in range(1, 10):
-    knn_regressor = KNeighborsRegressor(n_neighbors=k)
-    knn_regressor.fit(x_train, y_train)
-    print(f'Score for k={k}: {knn_regressor.score(x_test, y_test)}')
+# for k in range(1, 10):
+#     knn_regressor = KNeighborsRegressor(n_neighbors=k)
+#     knn_regressor.fit(x_train, y_train)
+#     print(f'Score for k={k}: {knn_regressor.score(x_test, y_test)}')
 
 kf = KFold(n_splits=5,shuffle=True,random_state=42)
 indexes = kf.split(X,y)
@@ -217,6 +217,20 @@ for train_index, test_index in indexes:
     model_evaluation(y_test,y_pred,x_train.shape[0],x_train.shape[1])
     print("koeficijenti: ", linear_model.coef_)
 
+
+kf = KFold(n_splits=5,shuffle=True,random_state=42)
+indexes = kf.split(X,y)
+for train_index, test_index in indexes:
+    x_train = X.iloc[train_index, :]
+    x_test = X.iloc[test_index, :]
+    y_train = y.iloc[train_index]
+    y_test = y.iloc[test_index]
+
+    scaler = StandardScaler()
+    scaler.fit(x_train)
+    x_train = scaler.transform(x_train)
+    x_test = scaler.transform(x_test)
+
     print("\nRidge regresiaj")
     ridge_model = Ridge(alpha=5)
     # obuka
@@ -226,6 +240,20 @@ for train_index, test_index in indexes:
 
     model_evaluation(y_test, y_ridge_pred, x_train.shape[0], x_train.shape[1])
     print("koeficijenti: ", ridge_model.coef_)
+
+
+kf = KFold(n_splits=5,shuffle=True,random_state=42)
+indexes = kf.split(X,y)
+for train_index, test_index in indexes:
+    x_train = X.iloc[train_index, :]
+    x_test = X.iloc[test_index, :]
+    y_train = y.iloc[train_index]
+    y_test = y.iloc[test_index]
+
+    scaler = StandardScaler()
+    scaler.fit(x_train)
+    x_train = scaler.transform(x_train)
+    x_test = scaler.transform(x_test)
 
     print("\nLasso regresiaj")
     lasso_model = Lasso(alpha=0.01)
@@ -237,6 +265,20 @@ for train_index, test_index in indexes:
     model_evaluation(y_test, y_lasso_pred, x_train.shape[0], x_train.shape[1])
     print("koeficijenti: ", lasso_model.coef_)
 
+
+kf = KFold(n_splits=5,shuffle=True,random_state=42)
+indexes = kf.split(X,y)
+for train_index, test_index in indexes:
+    x_train = X.iloc[train_index, :]
+    x_test = X.iloc[test_index, :]
+    y_train = y.iloc[train_index]
+    y_test = y.iloc[test_index]
+
+    scaler = StandardScaler()
+    scaler.fit(x_train)
+    x_train = scaler.transform(x_train)
+    x_test = scaler.transform(x_test)
+
     print("\nKnn regresiaj")
     knn_regressor = KNeighborsRegressor(n_neighbors=2)
     knn_regressor.fit(x_train, y_train)
@@ -245,10 +287,137 @@ for train_index, test_index in indexes:
     model_evaluation(y_test, y_knn_pred, x_train.shape[0], x_train.shape[1])
     print("koeficijenti: ", knn_regressor.score(x_test,y_test))
 
+
+kf = KFold(n_splits=5,shuffle=True,random_state=42)
+indexes = kf.split(X,y)
+for train_index, test_index in indexes:
+    x_train = X.iloc[train_index, :]
+    x_test = X.iloc[test_index, :]
+    y_train = y.iloc[train_index]
+    y_test = y.iloc[test_index]
+
+    scaler = StandardScaler()
+    scaler.fit(x_train)
+    x_train = scaler.transform(x_train)
+    x_test = scaler.transform(x_test)
+
     print("\nStabla odluke")
     decision_tree = DecisionTreeRegressor()
     decision_tree.fit(x_train, y_train)
     y_desctree_pred = decision_tree.predict(x_test)
     model_evaluation(y_test, y_desctree_pred, x_train.shape[0], x_train.shape[1])
     print("koeficijenti: ", decision_tree.score(x_test,y_test))
+
+#%%Redukcija dimenzija
+
+print("\n Redukcija")
+sc = StandardScaler()
+
+x_train = sc.fit_transform(x_train)
+x_test = sc.transform(x_test)
+
+pca = PCA(n_components=2)
+
+x_train = pca.fit_transform(x_train)
+x_test = pca.transform(x_test)
+
+kf = KFold(n_splits=5,shuffle=True,random_state=42)
+indexes = kf.split(X,y)
+
+for train_index, test_index in indexes:
+    x_train = X.iloc[train_index,:]
+    x_test = X.iloc[test_index,:]
+    y_train = y.iloc[train_index]
+    y_test = y.iloc[test_index]
+
+
+    print("\nLinearna regresiaj")
+    linear_model = LinearRegression()
+    #obuka
+    linear_model.fit(x_train,y_train)
+    #testiranje
+    y_pred = linear_model.predict(x_test)
+
+    model_evaluation(y_test,y_pred,x_train.shape[0],x_train.shape[1])
+    print("koeficijenti: ", linear_model.coef_)
+
+
+kf = KFold(n_splits=5,shuffle=True,random_state=42)
+indexes = kf.split(X,y)
+
+for train_index, test_index in indexes:
+    x_train = X.iloc[train_index, :]
+    x_test = X.iloc[test_index, :]
+    y_train = y.iloc[train_index]
+    y_test = y.iloc[test_index]
+
+
+    print("\nRidge regresiaj")
+    ridge_model = Ridge(alpha=5)
+    # obuka
+    ridge_model.fit(x_train, y_train)
+    # testiranje
+    y_ridge_pred = ridge_model.predict(x_test)
+
+    model_evaluation(y_test, y_ridge_pred, x_train.shape[0], x_train.shape[1])
+    print("koeficijenti: ", ridge_model.coef_)
+
+
+kf = KFold(n_splits=5,shuffle=True,random_state=42)
+indexes = kf.split(X,y)
+for train_index, test_index in indexes:
+    x_train = X.iloc[train_index, :]
+    x_test = X.iloc[test_index, :]
+    y_train = y.iloc[train_index]
+    y_test = y.iloc[test_index]
+
+
+    print("\nLasso regresiaj")
+    lasso_model = Lasso(alpha=0.01)
+    # obuka
+    lasso_model.fit(x_train, y_train)
+    # testiranje
+    y_lasso_pred = lasso_model.predict(x_test)
+
+    model_evaluation(y_test, y_lasso_pred, x_train.shape[0], x_train.shape[1])
+    print("koeficijenti: ", lasso_model.coef_)
+
+
+kf = KFold(n_splits=5,shuffle=True,random_state=42)
+indexes = kf.split(X,y)
+for train_index, test_index in indexes:
+    x_train = X.iloc[train_index, :]
+    x_test = X.iloc[test_index, :]
+    y_train = y.iloc[train_index]
+    y_test = y.iloc[test_index]
+
+
+    print("\nKnn regresiaj")
+    knn_regressor = KNeighborsRegressor(n_neighbors=2)
+    knn_regressor.fit(x_train, y_train)
+    y_knn_pred = knn_regressor.predict(x_test)
+
+    model_evaluation(y_test, y_knn_pred, x_train.shape[0], x_train.shape[1])
+    print("koeficijenti: ", knn_regressor.score(x_test,y_test))
+
+
+kf = KFold(n_splits=5,shuffle=True,random_state=42)
+indexes = kf.split(X,y)
+for train_index, test_index in indexes:
+    x_train = X.iloc[train_index, :]
+    x_test = X.iloc[test_index, :]
+    y_train = y.iloc[train_index]
+    y_test = y.iloc[test_index]
+
+
+    print("\nStabla odluke")
+    decision_tree = DecisionTreeRegressor()
+    decision_tree.fit(x_train, y_train)
+    y_desctree_pred = decision_tree.predict(x_test)
+    model_evaluation(y_test, y_desctree_pred, x_train.shape[0], x_train.shape[1])
+    print("koeficijenti: ", decision_tree.score(x_test,y_test))
+
+
+explained_variance = pca.explained_variance_ratio_
+
 
