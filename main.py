@@ -193,249 +193,587 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.1, train_s
 #     knn_regressor.fit(x_train, y_train)
 #     print(f'Score for k={k}: {knn_regressor.score(x_test, y_test)}')
 
-kf = KFold(n_splits=5,shuffle=True,random_state=42)
-indexes = kf.split(X,y)
+#################################linearna regresija#####################################
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
-for train_index, test_index in indexes:
-    x_train = X.iloc[train_index,:]
-    x_test = X.iloc[test_index,:]
-    y_train = y.iloc[train_index]
-    y_test = y.iloc[test_index]
+# Prikupljanje rezultata unakrsne validacije
+cross_val_results_Linear = []
 
+# Petlja kroz preklope
+for train_index, test_index in kf.split(x_train, y_train):
+    # Podjela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train.iloc[train_index, :], x_train.iloc[test_index, :]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+
+    # Skaliranje značajki
     scaler = StandardScaler()
-    scaler.fit(x_train)
-    x_train = scaler.transform(x_train)
-    x_test = scaler.transform(x_test)
+    x_train_fold_scaled = scaler.fit_transform(x_train_fold)
+    x_val_fold_scaled = scaler.transform(x_val_fold)
 
-    print("\nLinearna regresiaj")
+    # Inicijalizacija i treniranje linearnog regresijskog modela
     linear_model = LinearRegression()
-    #obuka
-    linear_model.fit(x_train,y_train)
-    #testiranje
-    y_pred = linear_model.predict(x_test)
+    linear_model.fit(x_train_fold_scaled, y_train_fold)
 
-    model_evaluation(y_test,y_pred,x_train.shape[0],x_train.shape[1])
-    print("koeficijenti: ", linear_model.coef_)
+    # Predikcija na validacionom skupu
+    y_pred_val = linear_model.predict(x_val_fold_scaled)
+
+    # Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_results_Linear.append(mae_val)
+
+# Indeks najboljeg preklopa (najmanji MAE)
+best_fold_index = cross_val_results_Linear.index(min(cross_val_results_Linear))
+
+# Dobivanje indeksa za najbolji preklop
+best_fold_indexes = next(kf.split(x_train, y_train), None)
+
+if best_fold_indexes:
+    train_index, _ = best_fold_indexes
+    best_x_train_fold, best_y_train_fold = x_train.iloc[train_index, :], y_train.iloc[train_index]
+else:
+    print("Nije pronađen indeks najboljeg preklopa.")
+
+# Skaliranje trening podataka
+scaler = StandardScaler()
+best_x_train_fold_scaled = scaler.fit_transform(best_x_train_fold)
+
+# Treniranje modela na cijelom trening skupu koristeći najbolji preklop
+linear_model = LinearRegression()
+linear_model.fit(best_x_train_fold_scaled, best_y_train_fold)
+
+# Skaliranje testnih podataka
+x_test_scaled = scaler.transform(x_test)
+
+# Predikcija na testnom skupu
+y_pred_test = linear_model.predict(x_test_scaled)
+
+# Evaluacija modela na testnom skupu
+mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu Linearna regresija:", mae_test)
 
 
-kf = KFold(n_splits=5,shuffle=True,random_state=42)
-indexes = kf.split(X,y)
-for train_index, test_index in indexes:
-    x_train = X.iloc[train_index, :]
-    x_test = X.iloc[test_index, :]
-    y_train = y.iloc[train_index]
-    y_test = y.iloc[test_index]
+####################################Ridge###################################################
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
+# Prikupljanje rezultata unakrsne validacije
+cross_val_resultsRidge = []
+
+# Petlja kroz preklope
+for train_index, test_index in kf.split(x_train, y_train):
+    # Podjela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train.iloc[train_index, :], x_train.iloc[test_index, :]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+
+    # Skaliranje značajki
     scaler = StandardScaler()
-    scaler.fit(x_train)
-    x_train = scaler.transform(x_train)
-    x_test = scaler.transform(x_test)
+    x_train_fold_scaled = scaler.fit_transform(x_train_fold)
+    x_val_fold_scaled = scaler.transform(x_val_fold)
 
-    print("\nRidge regresiaj")
-    ridge_model = Ridge(alpha=5)
-    # obuka
-    ridge_model.fit(x_train, y_train)
-    # testiranje
-    y_ridge_pred = ridge_model.predict(x_test)
+    # Inicijalizacija i treniranje linearnog regresijskog modela
+    Ridge_model = Ridge(alpha=5)
+    Ridge_model.fit(x_train_fold_scaled, y_train_fold)
 
-    model_evaluation(y_test, y_ridge_pred, x_train.shape[0], x_train.shape[1])
-    print("koeficijenti: ", ridge_model.coef_)
+    # Predikcija na validacionom skupu
+    y_pred_val = Ridge_model.predict(x_val_fold_scaled)
 
+    # Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsRidge.append(mae_val)
 
-kf = KFold(n_splits=5,shuffle=True,random_state=42)
-indexes = kf.split(X,y)
-for train_index, test_index in indexes:
-    x_train = X.iloc[train_index, :]
-    x_test = X.iloc[test_index, :]
-    y_train = y.iloc[train_index]
-    y_test = y.iloc[test_index]
+# Indeks najboljeg preklopa (najmanji MAE)
+best_fold_index = cross_val_resultsRidge.index(min(cross_val_resultsRidge))
 
+# Dobivanje indeksa za najbolji preklop
+best_fold_indexes = next(kf.split(x_train, y_train), None)
+
+if best_fold_indexes:
+    train_index, _ = best_fold_indexes
+    best_x_train_fold, best_y_train_fold = x_train.iloc[train_index, :], y_train.iloc[train_index]
+else:
+    print("Nije pronađen indeks najboljeg preklopa.")
+
+# Skaliranje trening podataka
+scaler = StandardScaler()
+best_x_train_fold_scaled = scaler.fit_transform(best_x_train_fold)
+
+# Treniranje modela na cijelom trening skupu koristeći najbolji preklop
+Ridge_model = Ridge(alpha=5)
+Ridge_model.fit(best_x_train_fold_scaled, best_y_train_fold)
+
+# Skaliranje testnih podataka
+x_test_scaled = scaler.transform(x_test)
+
+# Predikcija na testnom skupu
+y_pred_test = Ridge_model.predict(x_test_scaled)
+
+# Evaluacija modela na testnom skupu
+mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu Ridge regresija:", mae_test)
+#######################################################################################
+
+#####################################Lasso##################################################
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+# Prikupljanje rezultata unakrsne validacije
+cross_val_resultsLasso = []
+
+# Petlja kroz preklope
+for train_index, test_index in kf.split(x_train, y_train):
+    # Podjela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train.iloc[train_index, :], x_train.iloc[test_index, :]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+
+    # Skaliranje značajki
     scaler = StandardScaler()
-    scaler.fit(x_train)
-    x_train = scaler.transform(x_train)
-    x_test = scaler.transform(x_test)
+    x_train_fold_scaled = scaler.fit_transform(x_train_fold)
+    x_val_fold_scaled = scaler.transform(x_val_fold)
 
-    print("\nLasso regresiaj")
-    lasso_model = Lasso(alpha=0.01)
-    # obuka
-    lasso_model.fit(x_train, y_train)
-    # testiranje
-    y_lasso_pred = lasso_model.predict(x_test)
+    # Inicijalizacija i treniranje linearnog regresijskog modela
+    Lasso_model  = Lasso(alpha=0.01)
+    Lasso_model.fit(x_train_fold_scaled, y_train_fold)
 
-    model_evaluation(y_test, y_lasso_pred, x_train.shape[0], x_train.shape[1])
-    print("koeficijenti: ", lasso_model.coef_)
+    # Predikcija na validacionom skupu
+    y_pred_val = Lasso_model.predict(x_val_fold_scaled)
 
+    # Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsLasso.append(mae_val)
 
-kf = KFold(n_splits=5,shuffle=True,random_state=42)
-indexes = kf.split(X,y)
-for train_index, test_index in indexes:
-    x_train = X.iloc[train_index, :]
-    x_test = X.iloc[test_index, :]
-    y_train = y.iloc[train_index]
-    y_test = y.iloc[test_index]
+# Indeks najboljeg preklopa (najmanji MAE)
+best_fold_index = cross_val_resultsLasso.index(min(cross_val_resultsLasso))
 
+# Dobivanje indeksa za najbolji preklop
+best_fold_indexes = next(kf.split(x_train, y_train), None)
+
+if best_fold_indexes:
+    train_index, _ = best_fold_indexes
+    best_x_train_fold, best_y_train_fold = x_train.iloc[train_index, :], y_train.iloc[train_index]
+else:
+    print("Nije pronađen indeks najboljeg preklopa.")
+
+# Skaliranje trening podataka
+scaler = StandardScaler()
+best_x_train_fold_scaled = scaler.fit_transform(best_x_train_fold)
+
+# Treniranje modela na cijelom trening skupu koristeći najbolji preklop
+Lasso_model  = Lasso(alpha=0.01)
+Lasso_model.fit(best_x_train_fold_scaled, best_y_train_fold)
+
+# Skaliranje testnih podataka
+x_test_scaled = scaler.transform(x_test)
+
+# Predikcija na testnom skupu
+y_pred_test = Lasso_model.predict(x_test_scaled)
+
+# Evaluacija modela na testnom skupu
+mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu Lasso regresija:", mae_test)
+############################################################################################
+
+######################################Knn_regressor#######################################################
+print("\nPrikaz modela evaluacije knn regresije\n")
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+# Prikupljanje rezultata unakrsne validacije
+cross_val_resultsKNN = []
+
+# Petlja kroz preklope
+for train_index, test_index in kf.split(x_train, y_train):
+    # Podjela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train.iloc[train_index, :], x_train.iloc[test_index, :]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+
+    # Skaliranje značajki
     scaler = StandardScaler()
-    scaler.fit(x_train)
-    x_train = scaler.transform(x_train)
-    x_test = scaler.transform(x_test)
+    x_train_fold_scaled = scaler.fit_transform(x_train_fold)
+    x_val_fold_scaled = scaler.transform(x_val_fold)
 
-    print("\nKnn regresiaj")
+    # Inicijalizacija i treniranje linearnog regresijskog modela
     knn_regressor = KNeighborsRegressor(n_neighbors=2)
-    knn_regressor.fit(x_train, y_train)
-    y_knn_pred = knn_regressor.predict(x_test)
+    knn_regressor.fit(x_train_fold_scaled, y_train_fold)
 
-    model_evaluation(y_test, y_knn_pred, x_train.shape[0], x_train.shape[1])
-    print("koeficijenti: ", knn_regressor.score(x_test,y_test))
+    # Predikcija na validacionom skupu
+    y_pred_val = knn_regressor.predict(x_val_fold_scaled)
 
+    # Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsKNN.append(mae_val)
 
-kf = KFold(n_splits=5,shuffle=True,random_state=42)
-indexes = kf.split(X,y)
-for train_index, test_index in indexes:
-    x_train = X.iloc[train_index, :]
-    x_test = X.iloc[test_index, :]
-    y_train = y.iloc[train_index]
-    y_test = y.iloc[test_index]
+# Indeks najboljeg preklopa (najmanji MAE)
+best_fold_index = cross_val_resultsKNN.index(min(cross_val_resultsKNN))
 
+# Dobivanje indeksa za najbolji preklop
+best_fold_indexes = next(kf.split(x_train, y_train), None)
+
+if best_fold_indexes:
+    train_index, _ = best_fold_indexes
+    best_x_train_fold, best_y_train_fold = x_train.iloc[train_index, :], y_train.iloc[train_index]
+else:
+    print("Nije pronađen indeks najboljeg preklopa.")
+
+# Skaliranje trening podataka
+scaler = StandardScaler()
+best_x_train_fold_scaled = scaler.fit_transform(best_x_train_fold)
+
+# Treniranje modela na cijelom trening skupu koristeći najbolji preklop
+knn_regressor = KNeighborsRegressor(n_neighbors=2)
+knn_regressor.fit(best_x_train_fold_scaled, best_y_train_fold)
+
+# Skaliranje testnih podataka
+x_test_scaled = scaler.transform(x_test)
+
+# Predikcija na testnom skupu
+y_pred_test = knn_regressor.predict(x_test_scaled)
+model_evaluation(y_test, y_pred_test, x_train.shape[0], x_train.shape[1])
+# Evaluacija modela na testnom skupu
+mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu KNN regresija:", mae_test)
+#############################################################################################
+
+##################################RandomForest_tree###########################################################
+print("\nPrikaz modela evaluacije radnom forest regresije\n")
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+# Prikupljanje rezultata unakrsne validacije
+cross_val_resultsRadnomForest = []
+
+# Petlja kroz preklope
+for train_index, test_index in kf.split(x_train, y_train):
+    # Podjela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train.iloc[train_index, :], x_train.iloc[test_index, :]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+
+    # Skaliranje značajki
     scaler = StandardScaler()
-    scaler.fit(x_train)
-    x_train = scaler.transform(x_train)
-    x_test = scaler.transform(x_test)
+    x_train_fold_scaled = scaler.fit_transform(x_train_fold)
+    x_val_fold_scaled = scaler.transform(x_val_fold)
 
-    print("\nStabla odluke")
+    # Inicijalizacija i treniranje linearnog regresijskog modela
     RandomForest_tree = RandomForestRegressor(n_estimators=100, random_state=42)
-    RandomForest_tree.fit(x_train, y_train)
-    y_RandomForest_tree_pred = RandomForest_tree.predict(x_test)
-    model_evaluation(y_test, y_RandomForest_tree_pred, x_train.shape[0], x_train.shape[1])
-    print("koeficijenti: ", RandomForest_tree.score(x_test,y_test))
+    RandomForest_tree.fit(x_train_fold_scaled, y_train_fold)
+
+    # Predikcija na validacionom skupu
+    y_pred_val = RandomForest_tree.predict(x_val_fold_scaled)
+
+    # Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsRadnomForest.append(mae_val)
+
+# Indeks najboljeg preklopa (najmanji MAE)
+best_fold_index = cross_val_resultsRadnomForest.index(min(cross_val_resultsRadnomForest))
+
+# Dobivanje indeksa za najbolji preklop
+best_fold_indexes = next(kf.split(x_train, y_train), None)
+
+if best_fold_indexes:
+    train_index, _ = best_fold_indexes
+    best_x_train_fold, best_y_train_fold = x_train.iloc[train_index, :], y_train.iloc[train_index]
+else:
+    print("Nije pronađen indeks najboljeg preklopa.")
+
+# Skaliranje trening podataka
+scaler = StandardScaler()
+best_x_train_fold_scaled = scaler.fit_transform(best_x_train_fold)
+
+# Treniranje modela na cijelom trening skupu koristeći najbolji preklop
+RandomForest_tree = RandomForestRegressor(n_estimators=100, random_state=42)
+RandomForest_tree.fit(best_x_train_fold_scaled, best_y_train_fold)
+
+# Skaliranje testnih podataka
+x_test_scaled = scaler.transform(x_test)
+
+# Predikcija na testnom skupu
+y_pred_test = RandomForest_tree.predict(x_test_scaled)
+model_evaluation(y_test, y_pred_test, x_train.shape[0], x_train.shape[1])
+# Evaluacija modela na testnom skupu
+mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu RandomForest regresija:", mae_test)
+#############################################################################################
+
+#print("\nRedukcija putem PCA\n")
+
+############################Redukcija pomocu PCA#######################################
+# Inicijalizacija PCA
+pca = PCA(n_components=2)  # Postavljamo broj komponenti na 10, možete prilagoditi prema potrebi
+
+# Primjena PCA na trening skupu
+x_train_pca = pca.fit_transform(x_train)
 
 
-#Redukcija dimenzija
+#################################linearna regresija#####################################
 
-print("\n Redukcija")
-sc = StandardScaler()
+# Inicijalizacija KFold unakrsne validacije
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
-x_train = sc.fit_transform(x_train)
-x_test = sc.transform(x_test)
+# Prikupljanje rezultata unakrsne validacije
+cross_val_resultsLinearPCA = []
 
-pca = PCA(n_components=2)
+# Petlja kroz preklope
+for train_index, test_index in kf.split(x_train_pca, y_train):
+    # Podjela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train_pca[train_index, :], x_train_pca[test_index, :]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[test_index]
 
-x_train = pca.fit_transform(x_train)
-x_test = pca.transform(x_test)
-
-kf = KFold(n_splits=5,shuffle=True,random_state=42)
-indexes = kf.split(X,y)
-
-for train_index, test_index in indexes:
-    x_train = X.iloc[train_index,:]
-    x_test = X.iloc[test_index,:]
-    y_train = y.iloc[train_index]
-    y_test = y.iloc[test_index]
-
-    scaler = StandardScaler()
-    scaler.fit(x_train)
-    x_train = scaler.transform(x_train)
-    x_test = scaler.transform(x_test)
-
-    print("\nLinearna regresiaj")
+    # Inicijalizacija i treniranje linearnog regresijskog modela
     linear_model = LinearRegression()
-    #obuka
-    linear_model.fit(x_train,y_train)
-    #testiranje
-    y_pred = linear_model.predict(x_test)
+    linear_model.fit(x_train_fold, y_train_fold)
 
-    model_evaluation(y_test,y_pred,x_train.shape[0],x_train.shape[1])
-    print("koeficijenti: ", linear_model.coef_)
+    # Predikcija na validacionom skupu
+    y_pred_val = linear_model.predict(x_val_fold)
 
+    # Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsLinearPCA.append(mae_val)
 
-kf = KFold(n_splits=5,shuffle=True,random_state=42)
-indexes = kf.split(X,y)
+# Indeks najboljeg preklopa (najmanji MAE)
+best_fold_index = cross_val_resultsLinearPCA.index(min(cross_val_resultsLinearPCA))
 
-for train_index, test_index in indexes:
-    x_train = X.iloc[train_index, :]
-    x_test = X.iloc[test_index, :]
-    y_train = y.iloc[train_index]
-    y_test = y.iloc[test_index]
+# Dobivanje indeksa za najbolji preklop
+best_fold_indexes = next(kf.split(x_train_pca, y_train), None)
 
-    scaler = StandardScaler()
-    scaler.fit(x_train)
-    x_train = scaler.transform(x_train)
-    x_test = scaler.transform(x_test)
+if best_fold_indexes:
+    train_index, _ = best_fold_indexes
+    best_x_train_fold, best_y_train_fold = x_train_pca[train_index, :], y_train.iloc[train_index]
+else:
+    print("Nije pronađen indeks najboljeg preklopa.")
 
-    print("\nRidge regresiaj")
+# Treniranje modela na cijelom trening skupu koristeći najbolji preklop
+linear_model = LinearRegression()
+linear_model.fit(best_x_train_fold, best_y_train_fold)
+
+# Primjena PCA na testni skup
+x_test_pca = pca.transform(x_test)
+
+# Predikcija na testnom skupu
+y_pred_test = linear_model.predict(x_test_pca)
+
+# Evaluacija modela na testnom skupu
+mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu Linearna regresija s PCA:", mae_test)
+######################################################################################
+
+#################################Ridge#####################################
+
+# Inicijalizacija KFold unakrsne validacije
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+# Prikupljanje rezultata unakrsne validacije
+cross_val_resultsRidgePCA = []
+
+# Petlja kroz preklope
+for train_index, test_index in kf.split(x_train_pca, y_train):
+    # Podjela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train_pca[train_index, :], x_train_pca[test_index, :]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+
+    # Inicijalizacija i treniranje linearnog regresijskog modela
     ridge_model = Ridge(alpha=5)
-    # obuka
-    ridge_model.fit(x_train, y_train)
-    # testiranje
-    y_ridge_pred = ridge_model.predict(x_test)
+    ridge_model.fit(x_train_fold, y_train_fold)
 
-    model_evaluation(y_test, y_ridge_pred, x_train.shape[0], x_train.shape[1])
-    print("koeficijenti: ", ridge_model.coef_)
+    # Predikcija na validacionom skupu
+    y_pred_val = ridge_model.predict(x_val_fold)
 
+    # Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsRidgePCA.append(mae_val)
 
-kf = KFold(n_splits=5,shuffle=True,random_state=42)
-indexes = kf.split(X,y)
-for train_index, test_index in indexes:
-    x_train = X.iloc[train_index, :]
-    x_test = X.iloc[test_index, :]
-    y_train = y.iloc[train_index]
-    y_test = y.iloc[test_index]
+# Indeks najboljeg preklopa (najmanji MAE)
+best_fold_index = cross_val_resultsRidgePCA.index(min(cross_val_resultsRidgePCA))
 
-    scaler = StandardScaler()
-    scaler.fit(x_train)
-    x_train = scaler.transform(x_train)
-    x_test = scaler.transform(x_test)
+# Dobivanje indeksa za najbolji preklop
+best_fold_indexes = next(kf.split(x_train_pca, y_train), None)
 
-    print("\nLasso regresiaj")
+if best_fold_indexes:
+    train_index, _ = best_fold_indexes
+    best_x_train_fold, best_y_train_fold = x_train_pca[train_index, :], y_train.iloc[train_index]
+else:
+    print("Nije pronađen indeks najboljeg preklopa.")
+
+# Treniranje modela na cijelom trening skupu koristeći najbolji preklop
+ridge_model = Ridge(alpha=5)
+ridge_model.fit(best_x_train_fold, best_y_train_fold)
+
+# Primjena PCA na testni skup
+x_test_pca = pca.transform(x_test)
+
+# Predikcija na testnom skupu
+y_pred_test = ridge_model.predict(x_test_pca)
+
+# Evaluacija modela na testnom skupu
+mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu Ridge regresija s PCA:", mae_test)
+######################################################################################
+
+#################################Lasso#####################################
+
+# Inicijalizacija KFold unakrsne validacije
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+# Prikupljanje rezultata unakrsne validacije
+cross_val_resultsLassoPCA = []
+
+# Petlja kroz preklope
+for train_index, test_index in kf.split(x_train_pca, y_train):
+    # Podjela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train_pca[train_index, :], x_train_pca[test_index, :]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+
+    # Inicijalizacija i treniranje linearnog regresijskog modela
     lasso_model = Lasso(alpha=0.01)
-    # obuka
-    lasso_model.fit(x_train, y_train)
-    # testiranje
-    y_lasso_pred = lasso_model.predict(x_test)
+    lasso_model.fit(x_train_fold, y_train_fold)
 
-    model_evaluation(y_test, y_lasso_pred, x_train.shape[0], x_train.shape[1])
-    print("koeficijenti: ", lasso_model.coef_)
+    # Predikcija na validacionom skupu
+    y_pred_val = lasso_model.predict(x_val_fold)
 
+    # Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsLassoPCA.append(mae_val)
 
-kf = KFold(n_splits=5,shuffle=True,random_state=42)
-indexes = kf.split(X,y)
-for train_index, test_index in indexes:
-    x_train = X.iloc[train_index, :]
-    x_test = X.iloc[test_index, :]
-    y_train = y.iloc[train_index]
-    y_test = y.iloc[test_index]
+# Indeks najboljeg preklopa (najmanji MAE)
+best_fold_index = cross_val_resultsLassoPCA.index(min(cross_val_resultsLassoPCA))
 
-    scaler = StandardScaler()
-    scaler.fit(x_train)
-    x_train = scaler.transform(x_train)
-    x_test = scaler.transform(x_test)
+# Dobivanje indeksa za najbolji preklop
+best_fold_indexes = next(kf.split(x_train_pca, y_train), None)
 
-    print("\nKnn regresiaj")
+if best_fold_indexes:
+    train_index, _ = best_fold_indexes
+    best_x_train_fold, best_y_train_fold = x_train_pca[train_index, :], y_train.iloc[train_index]
+else:
+    print("Nije pronađen indeks najboljeg preklopa.")
+
+# Treniranje modela na cijelom trening skupu koristeći najbolji preklop
+lasso_model = Lasso(alpha=0.01)
+lasso_model.fit(best_x_train_fold, best_y_train_fold)
+
+# Primjena PCA na testni skup
+x_test_pca = pca.transform(x_test)
+
+# Predikcija na testnom skupu
+y_pred_test = lasso_model.predict(x_test_pca)
+
+# Evaluacija modela na testnom skupu
+mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu Lasso regresija s PCA:", mae_test)
+######################################################################################
+
+#################################KNN#####################################
+
+# Inicijalizacija KFold unakrsne validacije
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+# Prikupljanje rezultata unakrsne validacije
+cross_val_resultsKNNPCA = []
+
+# Petlja kroz preklope
+for train_index, test_index in kf.split(x_train_pca, y_train):
+    # Podjela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train_pca[train_index, :], x_train_pca[test_index, :]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+
+    # Inicijalizacija i treniranje linearnog regresijskog modela
     knn_regressor = KNeighborsRegressor(n_neighbors=2)
-    knn_regressor.fit(x_train, y_train)
-    y_knn_pred = knn_regressor.predict(x_test)
+    knn_regressor.fit(x_train_fold, y_train_fold)
 
-    model_evaluation(y_test, y_knn_pred, x_train.shape[0], x_train.shape[1])
-    print("koeficijenti: ", knn_regressor.score(x_test,y_test))
+    # Predikcija na validacionom skupu
+    y_pred_val = knn_regressor.predict(x_val_fold)
 
+    # Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsKNNPCA.append(mae_val)
 
-kf = KFold(n_splits=5,shuffle=True,random_state=42)
-indexes = kf.split(X,y)
-for train_index, test_index in indexes:
-    x_train = X.iloc[train_index, :]
-    x_test = X.iloc[test_index, :]
-    y_train = y.iloc[train_index]
-    y_test = y.iloc[test_index]
+# Indeks najboljeg preklopa (najmanji MAE)
+best_fold_index = cross_val_resultsKNNPCA.index(min(cross_val_resultsKNNPCA))
 
-    scaler = StandardScaler()
-    scaler.fit(x_train)
-    x_train = scaler.transform(x_train)
-    x_test = scaler.transform(x_test)
+# Dobivanje indeksa za najbolji preklop
+best_fold_indexes = next(kf.split(x_train_pca, y_train), None)
 
-    print("\nStabla odluke")
+if best_fold_indexes:
+    train_index, _ = best_fold_indexes
+    best_x_train_fold, best_y_train_fold = x_train_pca[train_index, :], y_train.iloc[train_index]
+else:
+    print("Nije pronađen indeks najboljeg preklopa.")
+
+# Treniranje modela na cijelom trening skupu koristeći najbolji preklop
+knn_regressor = KNeighborsRegressor(n_neighbors=2)
+knn_regressor.fit(best_x_train_fold, best_y_train_fold)
+
+# Primjena PCA na testni skup
+x_test_pca = pca.transform(x_test)
+
+# Predikcija na testnom skupu
+y_pred_test = knn_regressor.predict(x_test_pca)
+
+# Evaluacija modela na testnom skupu
+mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu KNN regresija s PCA:", mae_test)
+######################################################################################
+
+#################################RandomForest#####################################
+print("\nPrikaz modela evaluacije radnom forest regresije sa redukcijom pomocu pca\n")
+# Inicijalizacija KFold unakrsne validacije
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+# Prikupljanje rezultata unakrsne validacije
+cross_val_resultsRadnomForestPCA = []
+
+# Petlja kroz preklope
+for train_index, test_index in kf.split(x_train_pca, y_train):
+    # Podjela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train_pca[train_index, :], x_train_pca[test_index, :]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+
+    # Inicijalizacija i treniranje linearnog regresijskog modela
     RandomForest_tree = RandomForestRegressor(n_estimators=100, random_state=42)
-    RandomForest_tree.fit(x_train, y_train)
-    y_RandomForest_tree_pred = RandomForest_tree.predict(x_test)
-    model_evaluation(y_test, y_RandomForest_tree_pred, x_train.shape[0], x_train.shape[1])
-    print("koeficijenti: ", RandomForest_tree.score(x_test,y_test))
+    RandomForest_tree.fit(x_train_fold, y_train_fold)
+
+    # Predikcija na validacionom skupu
+    y_pred_val = RandomForest_tree.predict(x_val_fold)
+
+    # Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsRadnomForestPCA.append(mae_val)
+
+# Indeks najboljeg preklopa (najmanji MAE)
+best_fold_index = cross_val_resultsRadnomForestPCA.index(min(cross_val_resultsRadnomForestPCA))
+
+# Dobivanje indeksa za najbolji preklop
+best_fold_indexes = next(kf.split(x_train_pca, y_train), None)
+
+if best_fold_indexes:
+    train_index, _ = best_fold_indexes
+    best_x_train_fold, best_y_train_fold = x_train_pca[train_index, :], y_train.iloc[train_index]
+else:
+    print("Nije pronađen indeks najboljeg preklopa.")
+
+# Treniranje modela na cijelom trening skupu koristeći najbolji preklop
+RandomForest_tree = RandomForestRegressor(n_estimators=100, random_state=42)
+RandomForest_tree.fit(best_x_train_fold, best_y_train_fold)
+
+# Primjena PCA na testni skup
+x_test_pca = pca.transform(x_test)
+
+# Predikcija na testnom skupu
+y_pred_test = RandomForest_tree.predict(x_test_pca)
+model_evaluation(y_test, y_pred_test, x_train.shape[0], x_train.shape[1])
+# Evaluacija modela na testnom skupu
+mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu RandomForest regresija s PCA:", mae_test)
+######################################################################################
+
+########################################################################################
+
+# all_cross_val_results = [
+#     cross_val_results_Linear,
+#     cross_val_resultsRidge,
+#     cross_val_resultsLasso,
+#     cross_val_resultsKNN,
+#     cross_val_resultsRadnomForest,
+#     cross_val_resultsLinearPCA,
+#     cross_val_resultsRidgePCA,
+#     cross_val_resultsLassoPCA,
+#     cross_val_resultsKNNPCA,
+#     cross_val_resultsRadnomForestPCA
+# ]
+# print(all_cross_val_results)
 
 
