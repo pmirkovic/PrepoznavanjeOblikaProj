@@ -246,7 +246,7 @@ x_test_scaled = scaler.transform(x_test)
 
 # Predikcija na testnom skupu
 y_pred_test = linear_model.predict(x_test_scaled)
-
+model_evaluation(y_test, y_pred_test, x_train.shape[0], x_train.shape[1])
 # Evaluacija modela na testnom skupu
 mae_test = mean_absolute_error(y_test, y_pred_test)
 #print("MAE na testnom skupu Linearna regresija:", mae_test)
@@ -494,7 +494,7 @@ mae_test = mean_absolute_error(y_test, y_pred_test)
 
 ############################Redukcija pomocu PCA#######################################
 # Inicijalizacija PCA
-pca = PCA(n_components=2)  # Postavljamo broj komponenti na 10, možete prilagoditi prema potrebi
+pca = PCA(n_components=7)
 
 # Primjena PCA na trening skupu
 x_train_pca = pca.fit_transform(x_train)
