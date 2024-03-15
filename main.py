@@ -195,7 +195,8 @@ def model_evaluation(y_test, y_predicted, N, d):
     return mse,mae,rmse,r2,r2_adj
 
 #Trening i test skup
-x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.1, train_size=0.9, random_state=42)
+x_train1, x_test, y_train1, y_test = train_test_split(X, y, test_size=0.1, train_size=0.9, random_state=42)
+x_train, x_val, y_train, y_val = train_test_split(x_train1, y_train1, test_size=0.1, random_state=42)
 
 #Provera najboljeg k
 for k in range(1, 10):
@@ -204,9 +205,10 @@ for k in range(1, 10):
     print(f'Score for k={k}: {knn_regressor.score(x_test, y_test)}')
 print("\n")
 
+
 #################################linearna regresija#####################################
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
-
+print("\nPrikaz modela evaluacije Linearne regresije\n")
 #Prikupljanje rezultata unakrsne validacije
 cross_val_results_Linear = []
 
@@ -225,27 +227,23 @@ for train_index, test_index in kf.split(x_train, y_train):
     mae_val = mean_absolute_error(y_val_fold, y_pred_val)
     cross_val_results_Linear.append(mae_val)
 
-# Izračunavanje prosječnog MAE greške
-average_mae = np.mean(cross_val_results_Linear)
-
-
 #Treniranje modela na celom trening skupu koristeći najbolji fold
 linear_model = LinearRegression()
 linear_model.fit(x_train, y_train)
 
 #Predikcija na testnom skupu
-y_pred_test = linear_model.predict(x_test)
+y_pred_test = linear_model.predict(x_val)
 
-model_evaluation(y_test, y_pred_test, x_train.shape[0], x_train.shape[1])
+model_evaluation(y_val, y_pred_test, x_train.shape[0], x_train.shape[1])
 
 #Evaluacija modela na testnom skupu
-mae_test = mean_absolute_error(y_test, y_pred_test)
+#mae_test = mean_absolute_error(y_test, y_pred_test)
 #print("MAE na testnom skupu Linearna regresija:", mae_test)
 
 
 ####################################Ridge###################################################
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
-
+print("\nPrikaz modela evaluacije Ridge regresije\n")
 #Prikupljanje rezultata unakrsne validacije
 cross_val_resultsRidge = []
 
@@ -271,18 +269,18 @@ Ridge_model = Ridge(alpha=5)
 Ridge_model.fit(x_train, y_train)
 
 #Predikcija na testnom skupu
-y_pred_test = Ridge_model.predict(x_test)
+y_pred_test = Ridge_model.predict(x_val)
 
-model_evaluation(y_test, y_pred_test, x_train.shape[0], x_train.shape[1])
+model_evaluation(y_val, y_pred_test, x_train.shape[0], x_train.shape[1])
 
 #Evaluacija modela na testnom skupu
-mae_test = mean_absolute_error(y_test, y_pred_test)
+#mae_test = mean_absolute_error(y_test, y_pred_test)
 #print("MAE na testnom skupu Ridge regresija:", mae_test)
 #######################################################################################
 
 #####################################Lasso##################################################
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
-
+print("\nPrikaz modela evaluacije Lasso regresije\n")
 #Prikupljanje rezultata unakrsne validacije
 cross_val_resultsLasso = []
 
@@ -307,12 +305,12 @@ Lasso_model = Lasso(alpha=5)
 Lasso_model.fit(x_train, y_train)
 
 #Predikcija na testnom skupu
-y_pred_test = Lasso_model.predict(x_test)
+y_pred_test = Lasso_model.predict(x_val)
 
-model_evaluation(y_test, y_pred_test, x_train.shape[0], x_train.shape[1])
+model_evaluation(y_val, y_pred_test, x_train.shape[0], x_train.shape[1])
 
 #Evaluacija modela na testnom skupu
-mae_test = mean_absolute_error(y_test, y_pred_test)
+#mae_test = mean_absolute_error(y_test, y_pred_test)
 #print("MAE na testnom skupu Lasso regresija:", mae_test)
 ############################################################################################
 
@@ -345,19 +343,18 @@ knn_regressor = KNeighborsRegressor(n_neighbors=2)
 knn_regressor.fit(x_train, y_train)
 
 #Predikcija na testnom skupu
-y_pred_test = knn_regressor.predict(x_test)
+y_pred_test = knn_regressor.predict(x_val)
 
-model_evaluation(y_test, y_pred_test, x_train.shape[0], x_train.shape[1])
+model_evaluation(y_val, y_pred_test, x_train.shape[0], x_train.shape[1])
 
 #Evaluacija modela na testnom skupu
-mae_test = mean_absolute_error(y_test, y_pred_test)
+#mae_test = mean_absolute_error(y_test, y_pred_test)
 #print("MAE na testnom skupu KNN regresija:", mae_test)
 #############################################################################################
 
 ##################################RandomForest_tree###########################################################
-print("\nPrikaz modela evaluacije radnom forest regresije\n")
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
-
+print("\nPrikaz modela evaluacije radnom forest regresije\n")
 #Prikupljanje rezultata unakrsne validacije
 cross_val_resultsRadnomForest = []
 
@@ -382,12 +379,12 @@ RandomForest_tree = RandomForestRegressor(n_estimators=100, random_state=42)
 RandomForest_tree.fit(x_train, y_train)
 
 #Predikcija na testnom skupu
-y_pred_test = RandomForest_tree.predict(x_test)
+y_pred_test = RandomForest_tree.predict(x_val)
 
-model_evaluation(y_test, y_pred_test, x_train.shape[0], x_train.shape[1])
+model_evaluation(y_val, y_pred_test, x_train.shape[0], x_train.shape[1])
 
 #Evaluacija modela na testnom skupu
-mae_test = mean_absolute_error(y_test, y_pred_test)
+#mae_test = mean_absolute_error(y_test, y_pred_test)
 #print("MAE na testnom skupu RandomForest regresija:", mae_test)
 #############################################################################################
 
@@ -397,7 +394,7 @@ print("\nRedukcija putem PCA\n")
 # Standardizacija podataka
 scaler = StandardScaler()
 x_train_scaled = scaler.fit_transform(x_train)
-x_test_scaled = scaler.transform(x_test)
+x_test_scaled = scaler.transform(x_val)
 
 # Inicijalizacija PCA modela sa željenim brojem komponenti
 pca = PCA(n_components=2)
@@ -410,7 +407,7 @@ x_test_pca = pca.transform(x_test_scaled)
 
 #################################linearna regresija PCA#####################################
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
-
+print("\nPrikaz modela evaluacije Linearne regresije posle PCA\n")
 # Prikupljanje rezultata unakrsne validacije
 cross_val_results_Linear = []
 
@@ -436,13 +433,14 @@ linear_model.fit(x_train_pca, y_train)
 # Predikcija na testnom skupu
 y_pred_test = linear_model.predict(x_test_pca)
 
-model_evaluation(y_test, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
+model_evaluation(y_val, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
 
 # Evaluacija modela na testnom skupu
 # mae_test = mean_absolute_error(y_test, y_pred_test)
 # print("MAE na testnom skupu Linearna regresija s PCA:", mae_test)
 
-####################################Ridge###################################################
+####################################Ridge regression PCA###################################################
+print("\nPrikaz modela evaluacije Ridge regresije posle PCA\n")
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
 #Prikupljanje rezultata unakrsne validacije
@@ -472,15 +470,17 @@ Ridge_model.fit(x_train_pca, y_train)
 #Predikcija na testnom skupu
 y_pred_test = Ridge_model.predict(x_test_pca)
 
-model_evaluation(y_test, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
+model_evaluation(y_val, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
 
 #Evaluacija modela na testnom skupu
-mae_test = mean_absolute_error(y_test, y_pred_test)
+#mae_test = mean_absolute_error(y_test, y_pred_test)
 #print("MAE na testnom skupu Ridge regresija:", mae_test)
 #######################################################################################
 
-#####################################Lasso##################################################
+#####################################Lasso regression PCA ##################################################
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+print("\nPrikaz modela evaluacije Lasso regresije posle PCA\n")
 
 #Prikupljanje rezultata unakrsne validacije
 cross_val_resultsLasso = []
@@ -508,15 +508,15 @@ Lasso_model.fit(x_train_pca, y_train)
 #Predikcija na testnom skupu
 y_pred_test = Lasso_model.predict(x_test_pca)
 
-model_evaluation(y_test, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
+model_evaluation(y_val, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
 
 #Evaluacija modela na testnom skupu
-mae_test = mean_absolute_error(y_test, y_pred_test)
+#mae_test = mean_absolute_error(y_test, y_pred_test)
 #print("MAE na testnom skupu Lasso regresija:", mae_test)
 ############################################################################################
 
-######################################Knn_regressor#######################################################
-print("\nPrikaz modela evaluacije knn regresije\n")
+######################################Knn_regressor PCA#######################################################
+print("\nPrikaz modela evaluacije KNN regresije posle PCA\n")
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
 #Prikupljanje rezultata unakrsne validacije
@@ -546,14 +546,14 @@ knn_regressor.fit(x_train_pca, y_train)
 #Predikcija na testnom skupu
 y_pred_test = knn_regressor.predict(x_test_pca)
 
-model_evaluation(y_test, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
+model_evaluation(y_val, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
 
 #Evaluacija modela na testnom skupu
-mae_test = mean_absolute_error(y_test, y_pred_test)
+#mae_test = mean_absolute_error(y_test, y_pred_test)
 #print("MAE na testnom skupu KNN regresija:", mae_test)
 #############################################################################################
 
-##################################RandomForest_tree###########################################################
+##################################RandomForest_tree PCA###########################################################
 print("\nPrikaz modela evaluacije radnom forest regresije posle PCA\n")
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -583,10 +583,10 @@ RandomForest_tree.fit(x_train_pca, y_train)
 #Predikcija na testnom skupu
 y_pred_test = RandomForest_tree.predict(x_test_pca)
 
-model_evaluation(y_test, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
+model_evaluation(y_val, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
 
 #Evaluacija modela na testnom skupu
-mae_test = mean_absolute_error(y_test, y_pred_test)
+#mae_test = mean_absolute_error(y_test, y_pred_test)
 #print("MAE na testnom skupu RandomForest regresija:", mae_test)
 #############################################################################################
 
@@ -606,3 +606,130 @@ mae_test = mean_absolute_error(y_test, y_pred_test)
 # # print(all_cross_val_results)
 
 
+print("\n3 najbolja rezultata na test skupu\n")
+
+##################################RandomForest_tree###########################################################
+print("\nPrikaz modela evaluacije Radnom Forest regresije\n")
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+#Prikupljanje rezultata unakrsne validacije
+cross_val_resultsRadnomForest = []
+
+#Petlja kroz foldove
+for train_index, test_index in kf.split(x_train1, y_train1):
+    #Podela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train1.iloc[train_index, :], x_train1.iloc[test_index, :]
+    y_train_fold, y_val_fold = y_train1.iloc[train_index], y_train1.iloc[test_index]
+
+    RandomForest_tree = RandomForestRegressor(n_estimators=100, random_state=42)
+    RandomForest_tree.fit(x_train_fold, y_train_fold)
+
+    #Predikcija na validacionom skupu
+    y_pred_val = RandomForest_tree.predict(x_val_fold)
+
+    #Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsRadnomForest.append(mae_val)
+
+#Treniranje modela na celom trening skupu koristeći najbolji preklop
+RandomForest_tree = RandomForestRegressor(n_estimators=100, random_state=42)
+RandomForest_tree.fit(x_train1, y_train1)
+
+#Predikcija na testnom skupu
+y_pred_test = RandomForest_tree.predict(x_test)
+
+model_evaluation(y_test, y_pred_test, x_train1.shape[0], x_train1.shape[1])
+
+#Evaluacija modela na testnom skupu
+#mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu RandomForest regresija:", mae_test)
+#############################################################################################
+
+# Standardizacija podataka
+scaler = StandardScaler()
+x_train_scaled = scaler.fit_transform(x_train1)
+x_test_scaled = scaler.transform(x_test)
+
+# Inicijalizacija PCA modela sa željenim brojem komponenti
+pca = PCA(n_components=2)
+
+# Fitovanje PCA modela na standardizovanim podacima i transformacija podataka
+x_train_pca = pca.fit_transform(x_train_scaled)
+
+# PCA transformacija testnih podataka
+x_test_pca = pca.transform(x_test_scaled)
+
+######################################Knn_regressor#######################################################
+print("\nPrikaz modela evaluacije KNN regresije\n")
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+#Prikupljanje rezultata unakrsne validacije
+cross_val_resultsKNN = []
+
+# Petlja kroz foldove
+for train_index, test_index in kf.split(x_train_pca, y_train1):
+    #Podela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train_pca[train_index, :], x_train_pca[test_index, :]
+    y_train_fold, y_val_fold = y_train1.iloc[train_index], y_train1.iloc[test_index]
+
+    knn_regressor = KNeighborsRegressor(n_neighbors=2)
+    knn_regressor.fit(x_train_fold, y_train_fold)
+
+    #Predikcija na validacionom skupu
+    y_pred_val = knn_regressor.predict(x_val_fold)
+
+    #Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsKNN.append(mae_val)
+
+
+#Treniranje modela na celom trening skupu koristeći najbolji preklop
+knn_regressor = KNeighborsRegressor(n_neighbors=2)
+knn_regressor.fit(x_train_pca, y_train1)
+
+#Predikcija na testnom skupu
+y_pred_test = knn_regressor.predict(x_test_pca)
+
+model_evaluation(y_test, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
+
+#Evaluacija modela na testnom skupu
+#mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu KNN regresija:", mae_test)
+#############################################################################################
+
+##################################RandomForest_tree###########################################################
+print("\nPrikaz modela evaluacije Radnom Forest regresije posle PCA\n")
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+#Prikupljanje rezultata unakrsne validacije
+cross_val_resultsRadnomForest = []
+
+#Petlja kroz foldove
+for train_index, test_index in kf.split(x_train_pca, y_train1):
+    #Podela trening skupa na podskup za treniranje i validaciju
+    x_train_fold, x_val_fold = x_train_pca[train_index, :], x_train_pca[test_index, :]
+    y_train_fold, y_val_fold = y_train1.iloc[train_index], y_train1.iloc[test_index]
+
+    RandomForest_tree = RandomForestRegressor(n_estimators=100, random_state=42)
+    RandomForest_tree.fit(x_train_fold, y_train_fold)
+
+    #Predikcija na validacionom skupu
+    y_pred_val = RandomForest_tree.predict(x_val_fold)
+
+    #Evaluacija modela na validacionom skupu
+    mae_val = mean_absolute_error(y_val_fold, y_pred_val)
+    cross_val_resultsRadnomForest.append(mae_val)
+
+#Treniranje modela na celom trening skupu koristeći najbolji preklop
+RandomForest_tree = RandomForestRegressor(n_estimators=100, random_state=42)
+RandomForest_tree.fit(x_train_pca, y_train1)
+
+#Predikcija na testnom skupu
+y_pred_test = RandomForest_tree.predict(x_test_pca)
+
+model_evaluation(y_test, y_pred_test, x_train_pca.shape[0], x_train_pca.shape[1])
+
+#Evaluacija modela na testnom skupu
+#mae_test = mean_absolute_error(y_test, y_pred_test)
+#print("MAE na testnom skupu RandomForest regresija:", mae_test)
+#############################################################################################
